@@ -46,7 +46,7 @@ const TrendingItem = ({ activeItemId, item }) => {
   });
 
   const handlePlayPress = useCallback(() => {
-    setIsLoading(true);
+    // setIsLoading(true);
     setPlay(true);
   }, []);
 

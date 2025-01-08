@@ -1,16 +1,39 @@
 import { View, Text, Image, TouchableOpacity } from "react-native";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { icons } from "@/constants";
+import { VideoView, useVideoPlayer } from "expo-video";
+import { useEvent } from "expo";
 
 const VideoCard = ({
   video: {
     heading,
     thumbnail,
-    video,
+    media,
     users: { username, avatar },
   },
 }) => {
   const [play, setPlay] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const player = useVideoPlayer(media, (player) => {
+    player.loop = false;
+    if (play) {
+      player.play();
+    }
+  });
+
+  const { isPlaying } = useEvent(player, "playingChange", {
+    isPlaying: player?.playing,
+  });
+
+  const handlePlayPress = useCallback(() => {
+    // setIsLoading(true);
+    setPlay(true);
+  }, []);
+
+  const handleVideoLoad = useCallback(() => {
+    setIsLoading(false);
+  }, []);
   return (
     <View className="flex-col items-center px-4 mb-14">
       <View className="flex-row gap-3 items-start">
@@ -42,7 +65,40 @@ const VideoCard = ({
         </View>
       </View>
       {play ? (
-        <Text className="text-white">Playing</Text>
+        <View className="w-full h-70 rounded-l mt-3 justify-center items-center overflow-hidden">
+          {isLoading && !isPlaying && (
+            <ActivityIndicator size="large" className="absolute z-10" />
+          )}
+          <VideoView
+            style={{
+              width: "100%",
+              height: 300,
+              borderRadius: 35,
+            }}
+            player={player}
+            onLoad={handleVideoLoad}
+            allowsFullscreen
+            allowsPictureInPicture
+          />
+          {!isPlaying && (
+            <TouchableOpacity
+              className="absolute z-20 w-full h-full items-center justify-center bg-black/20"
+              onPress={() => {
+                if (isPlaying) {
+                  player.pause();
+                } else {
+                  player.play();
+                }
+              }}
+            >
+              <Image
+                source={icons.play}
+                resizeMode="contain"
+                className="w-12 h-12"
+              />
+            </TouchableOpacity>
+          )}
+        </View>
       ) : (
         <TouchableOpacity
           className="w-full h-60 rounded-xl mt-3 relative justify-center"
